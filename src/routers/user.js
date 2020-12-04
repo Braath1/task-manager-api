@@ -63,6 +63,22 @@ router.get('/users/me', auth, async (req, res) => {
     res.send(req.user);
 });
 
+router.get('/users/:id', auth, async (req, res) => {
+    const _id = req.params.id;
+
+    try {
+        const user = await User.findOne({ _id });
+
+        if (!user) {
+            return res.status(404).send();
+        }
+
+        res.send(user);
+    } catch(error) {
+        res.status(500).send();
+    }
+});
+
 router.patch('/users/me', auth, async (req, res) => {
     const updates = Object.keys(req.body);
     const allowedUpdates = ['name', 'email', 'password', 'age'];
@@ -117,6 +133,15 @@ const upload = multer({
     }
 });
 
+router.post('users/me/pdf', auth, upload.single('pdf'), async (req, res) => {
+    const buffer = await sharp(req.file.buffer).pdf().toBuffer();
+    req.user.pdf = buffer;
+    await req.user.save();
+    res.send();
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message })
+});
+
 router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
     const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer();
     req.user.avatar = buffer;
@@ -142,6 +167,21 @@ router.get('/users/:id/avatar', async (req, res) => {
         // http://localhost:3000/users/5fc16330d608da44f0f97c00/avatar
         res.set('Content-Type', 'image/png');
         res.send(user.avatar);
+    } catch(error) {
+        res.status(404).send();
+    }
+});
+
+router.get('/users/:id/pdf', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user || !user.pdf) {
+            throw new Error()
+        }
+
+        res.set('Content-Type', 'image/pdf');
+        res.send(user.pdf);
     } catch(error) {
         res.status(404).send();
     }

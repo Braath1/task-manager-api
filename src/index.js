@@ -2,7 +2,7 @@ const app = require('./app');
 const port = process.env.PORT;
 
 // File upload
-/*const multer = require('multer');
+const multer = require('multer');
 const upload = multer({
     dest: 'images',
     limits: {
@@ -17,7 +17,7 @@ const upload = multer({
         if (!file.originalname.match(/\.(doc|docx)$/)) {
             return cb(new Error('Please upload a Word document'));
         } */
-        /*
+        
         cb(undefined, true);
     }
 });
